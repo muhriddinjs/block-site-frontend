@@ -7,15 +7,17 @@ import {
   Typography,
   Paper,
   Alert,
-  CircularProgress, // Yuklanish uchun
+  CircularProgress,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+
+// 🌍 .env dan API manzilini olamiz
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 export default function Login() {
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // Yuklanish holati
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -24,34 +26,41 @@ export default function Login() {
     setError("");
 
     try {
+      // 🔗 API_URL oxirida /api borligiga ishonch hosil qiling
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
 
+      // Avval response statusini tekshiramiz
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Login yoki parol xato!");
+      }
+
       const data = await res.json();
 
-      if (res.ok) {
+      if (data.token) {
         localStorage.setItem("token", data.token); // 🔑 Tokenni saqlash
 
-        // 🔥 MUHIM: Ba'zida navigate() state yangilanishini kutib qoladi.
-        // Shuning uchun window.location.href ishlatish ishonchliroq yoki navigate'dan keyin sahifani refresh qilish kerak.
-        window.location.href = "/admin";
-      } else {
-        setError(data.message || "Login yoki parol xato!");
+        // ✅ Vercel-da 404 chiqmasligi uchun navigate ishlatish tavsiya etiladi
+        // Lekin undan oldin vercel.json faylini yaratgan bo'lishingiz shart!
+        navigate("/admin");
+
+        // Agar baribir muammo bo'lsa, pastdagi qatorni ishlating:
+        // window.location.href = "/admin";
       }
     } catch (err) {
-      setError(
-        "Server bilan bog'lanib bo'lmadi. Backend yoniqligini tekshiring.",
-      );
+      console.error("Login xatosi:", err);
+      setError(err.message || "Server bilan bog'lanib bo'lmadi.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container maxWidth="xs" sx={{ mt: 20, mb: 20 }}>
+    <Container maxWidth="xs" sx={{ mt: 10, mb: 10 }}>
       <Paper
         elevation={3}
         sx={{ p: 4, borderRadius: 3, backdropFilter: "blur(10px)" }}
@@ -73,6 +82,7 @@ export default function Login() {
             margin="normal"
             required
             disabled={loading}
+            value={form.username}
             onChange={(e) => setForm({ ...form, username: e.target.value })}
           />
           <TextField
@@ -82,6 +92,7 @@ export default function Login() {
             margin="normal"
             required
             disabled={loading}
+            value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
           <Button

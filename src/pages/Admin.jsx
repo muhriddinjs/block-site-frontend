@@ -108,8 +108,8 @@ export default function Admin() {
 
     try {
       const url = editId
-        ? `http://localhost:5000/api/articles/${editId}`
-        : "http://localhost:5000/api/articles";
+        ? `${API_URL}/articles/${editId}`
+        : `${API_URL}/articles`;
 
       const method = editId ? "PUT" : "POST";
 
