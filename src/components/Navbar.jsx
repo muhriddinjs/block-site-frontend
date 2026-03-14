@@ -112,7 +112,7 @@ export default function Navbar({ toggleColorMode, mode, setSearchQuery }) {
               display: { xs: "none", sm: "block" } // Mobil versiyada qidiruvga joy qolishi uchun
             }}
           >
-            IT-Savodxonlik
+            IbroBlog
           </Typography>
         </Box>
 

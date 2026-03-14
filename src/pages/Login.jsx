@@ -10,6 +10,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import api from "../utils/api";
 
 // 🌍 .env dan API manzilini olamiz
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
@@ -26,34 +27,19 @@ export default function Login() {
     setError("");
 
     try {
-      // 🔗 API_URL oxirida /api borligiga ishonch hosil qiling
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      // 🔗 Yaratgan api obyekti orqali so'rov yuboramiz
+      const res = await api.post("/auth/login", form);
 
-      // Avval response statusini tekshiramiz
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Login yoki parol xato!");
-      }
-
-      const data = await res.json();
-
-      if (data.token) {
-        localStorage.setItem("token", data.token); // 🔑 Tokenni saqlash
-
-        // ✅ Vercel-da 404 chiqmasligi uchun navigate ishlatish tavsiya etiladi
-        // Lekin undan oldin vercel.json faylini yaratgan bo'lishingiz shart!
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token); // 🔑 Tokenni saqlash
         navigate("/admin");
-
-        // Agar baribir muammo bo'lsa, pastdagi qatorni ishlating:
-        // window.location.href = "/admin";
       }
     } catch (err) {
       console.error("Login xatosi:", err);
-      setError(err.message || "Server bilan bog'lanib bo'lmadi.");
+      // Backenddan xato kelsa (masalan login/parol xato), shuni chiqaramiz
+      setError(
+        err.response?.data?.message || "Server bilan bog'lanib bo'lmadi.",
+      );
     } finally {
       setLoading(false);
     }
